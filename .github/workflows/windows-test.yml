@@ -63,9 +63,14 @@ jobs:
           echo "Running SetupRM.exe..."
           $key = $env:PAF_KEY
           $dir = $env:PAF_DIRECTORY
-          .\SetupRM.exe /key=$key /directory="$dir"
+          $process = Start-Process -FilePath ".\SetupRM.exe" -ArgumentList "/key=$key", "/directory=`"$dir`"" -PassThru -Wait -NoNewWindow
 
-          echo "SetupRM.exe completed"
+          echo "SetupRM.exe completed with exit code: $($process.ExitCode)"
+
+          if ($process.ExitCode -ne 0) {
+            echo "ERROR: SetupRM.exe failed with exit code $($process.ExitCode)"
+            exit 1
+          }
 
       - name: Verify extracted contents
         env:
