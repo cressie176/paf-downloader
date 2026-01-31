@@ -24,6 +24,7 @@ jobs:
           SFTP_HOST: ${{ secrets.SFTP_HOST }}
           SFTP_USER: ${{ secrets.SFTP_USER }}
           SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
+          SFTP_HOST_KEY: ${{ secrets.SFTP_HOST_KEY }}
         run: |
           echo "Downloading SetupRM.exe from SFTP server..."
 
@@ -32,7 +33,7 @@ jobs:
           @"
           option batch abort
           option confirm off
-          open sftp://${env:SFTP_HOST} -username=${env:SFTP_USER} -password=${env:SFTP_PASSWORD}
+          open sftp://${env:SFTP_HOST} -username=${env:SFTP_USER} -password=${env:SFTP_PASSWORD} -hostkey="${env:SFTP_HOST_KEY}"
           get SetupRM.exe
           exit
           "@ | Out-File -FilePath $scriptFile -Encoding ASCII
