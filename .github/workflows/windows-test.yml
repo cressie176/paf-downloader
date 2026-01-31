@@ -19,7 +19,17 @@ jobs:
       - name: Install WinSCP
         run: choco install winscp -y
 
+      - name: Cache SetupRM.exe
+        id: cache-setuprm
+        uses: actions/cache@v4
+        with:
+          path: SetupRM.exe
+          key: setuprm-${{ github.run_number }}
+          restore-keys: |
+            setuprm-
+
       - name: Download SetupRM.exe from SFTP
+        if: steps.cache-setuprm.outputs.cache-hit != 'true'
         env:
           SFTP_HOST: ${{ secrets.SFTP_HOST }}
           SFTP_USER: ${{ secrets.SFTP_USER }}
