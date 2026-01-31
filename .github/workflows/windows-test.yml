@@ -16,9 +16,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run test command
+      - name: Download SetupRM.exe from SFTP
+        env:
+          SFTP_HOST: ${{ secrets.SFTP_HOST }}
+          SFTP_USER: ${{ secrets.SFTP_USER }}
+          SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
         run: |
-          echo "Hello from Windows runner!"
-          systeminfo | findstr /B /C:"OS Name" /C:"OS Version"
-          echo "Current directory: $pwd"
-          dir
+          echo "Downloading SetupRM.exe from SFTP server..."
+          $netrcFile = New-TemporaryFile
+          @"
+          machine ${env:SFTP_HOST}
+          login ${env:SFTP_USER}
+          password ${env:SFTP_PASSWORD}
+          "@ | Out-File -FilePath $netrcFile -Encoding ASCII
+
+          curl --netrc-file $netrcFile "sftp://${env:SFTP_HOST}/SetupRM.exe" -o SetupRM.exe
+          Remove-Item $netrcFile -Force
+
+          if (Test-Path SetupRM.exe) {
+            echo "Download successful!"
+            Get-Item SetupRM.exe | Format-List Name, Length, LastWriteTime
+          } else {
+            echo "Download failed!"
+            exit 1
+          }
