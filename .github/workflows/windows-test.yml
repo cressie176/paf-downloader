@@ -49,3 +49,20 @@ jobs:
             echo "Download failed!"
             exit 1
           }
+
+      - name: Run SetupRM.exe
+        env:
+          PAF_KEY: ${{ secrets.PAF_KEY }}
+          PAF_DIRECTORY: ${{ secrets.PAF_DIRECTORY }}
+        run: |
+          echo "Creating directory..."
+          if (-not (Test-Path $env:PAF_DIRECTORY)) {
+            New-Item -ItemType Directory -Path $env:PAF_DIRECTORY -Force
+          }
+
+          echo "Running SetupRM.exe..."
+          $key = $env:PAF_KEY
+          $dir = $env:PAF_DIRECTORY
+          .\SetupRM.exe /key=$key /directory="$dir"
+
+          echo "SetupRM.exe completed"
