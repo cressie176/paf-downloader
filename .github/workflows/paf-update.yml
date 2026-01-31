@@ -1,42 +1,44 @@
-name: Windows Test
+name: PAF Update
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  test:
-    name: Test on Windows
+  update:
+    name: Update
     runs-on: windows-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Generate Month Key
+        id: month-key
+        run: |
+          $monthKey = "Y$(Get-Date -Format 'yy')M$(Get-Date -Format 'MM')"
+          echo "month=$monthKey" >> $env:GITHUB_OUTPUT
+          echo "Month key: $monthKey"
 
-      - name: Install WinSCP
+      - name: Install SFTP Client
         run: choco install winscp -y
 
-      - name: Cache SetupRM.exe
-        id: cache-setuprm
+      - name: Configure Cache
+        id: configure-cache
         uses: actions/cache@v4
         with:
           path: SetupRM.exe
-          key: setuprm-${{ github.run_number }}
+          key: setuprm-${{ steps.month-key.outputs.month }}
           restore-keys: |
             setuprm-
 
-      - name: Download SetupRM.exe from SFTP
-        if: steps.cache-setuprm.outputs.cache-hit != 'true'
+      - name: Download SetupRM.exe
+        if: steps.configure-cache.outputs.cache-hit != 'true'
         env:
           SFTP_HOST: ${{ secrets.SFTP_HOST }}
           SFTP_USER: ${{ secrets.SFTP_USER }}
           SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
           SFTP_HOST_KEY: ${{ secrets.SFTP_HOST_KEY }}
         run: |
-          echo "Downloading SetupRM.exe from SFTP server..."
+          echo "Downloading SetupRM.exe..."
 
           # Create WinSCP script
           $scriptFile = New-TemporaryFile
