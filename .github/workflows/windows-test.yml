@@ -66,3 +66,20 @@ jobs:
           .\SetupRM.exe /key=$key /directory="$dir"
 
           echo "SetupRM.exe completed"
+
+      - name: Verify extracted contents
+        env:
+          PAF_DIRECTORY: ${{ secrets.PAF_DIRECTORY }}
+        run: |
+          echo "Listing contents of PAF directory..."
+          Get-ChildItem -Path $env:PAF_DIRECTORY | Format-Table Name, Length, LastWriteTime -AutoSize
+
+          echo ""
+          $expectedDir = "Y$(Get-Date -Format 'yy')M$(Get-Date -Format 'MM')"
+          echo "Checking for $expectedDir directory..."
+          if (Test-Path "$env:PAF_DIRECTORY\$expectedDir") {
+            echo "$expectedDir directory found!"
+            Get-ChildItem -Path "$env:PAF_DIRECTORY\$expectedDir" | Format-Table Name, Length, LastWriteTime -AutoSize
+          } else {
+            echo "WARNING: $expectedDir directory not found!"
+          }
